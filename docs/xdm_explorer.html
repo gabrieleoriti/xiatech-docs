@@ -1,0 +1,584 @@
+
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="utf-8">
+        <title>XDM Explorer</title>
+        <script src="https://d3js.org/d3.v6.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.21/lodash.min.js"></script>
+        <link href="https://fonts.googleapis.com/css2?family=Saira:wght@400;600&display=swap" rel="stylesheet">
+        <style>
+            body {
+                background-color: #1a1a1a;
+                color: #ffffff;
+                font-family: 'Saira', sans-serif;
+                margin: 0;
+                padding: 0;
+            }
+            #header {
+                background-color: #2a2a2a;
+                padding: 20px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+            h1 {
+                margin: 0;
+                color: #ffffff;
+            }
+            #controls {
+                display: flex;
+                gap: 10px;
+            }
+            .node circle {
+                stroke-width: 3px;
+            }
+            .node text {
+                font-size: 12px;
+                fill: #ffffff;
+            }
+            .link {
+                fill: none;
+                stroke: #4a4a4a;
+                stroke-width: 2px;
+            }
+            .legend {
+                fill: #ffffff;
+            }
+            button {
+                background-color: #1a1a1a;
+                color: #00ffff;
+                border: 1px solid #00ffff;
+                padding: 8px 16px;
+                cursor: pointer;
+                font-family: 'Saira', sans-serif;
+                font-size: 14px;
+                transition: all 0.3s ease;
+            }
+            button:hover {
+                background-color: #00ffff;
+                color: #1a1a1a;
+            }
+            #modelSelect {
+                background-color: #1a1a1a;
+                color: #00ffff;
+                border: 1px solid #00ffff;
+                padding: 8px 16px;
+                cursor: pointer;
+                font-family: 'Saira', sans-serif;
+                font-size: 14px;
+                margin-right: 10px;
+            }
+            #content {
+                display: flex;
+                height: calc(100vh - 60px);
+            }
+            #tree-container {
+                flex: 1;
+                overflow: hidden;
+            }
+            #catalogue-container {
+                width: 0;
+                overflow-y: auto;
+                padding: 0;
+                transition: width 0.3s ease, padding 0.3s ease;
+            }
+            #catalogue-container.visible {
+                width: 50%;
+                padding: 20px;
+            }
+            #search-container {
+                margin-top: 20px;
+            }
+            #search-input {
+                width: 100%;
+                padding: 8px;
+                font-size: 14px;
+                background-color: #2a2a2a;
+                color: #ffffff;
+                border: 1px solid #00ffff;
+            }
+            .catalogue-item {
+                margin-bottom: 20px;
+                padding: 10px;
+                background-color: #2a2a2a;
+                border-radius: 5px;
+            }
+            .catalogue-item h3 {
+                margin-top: 0;
+                color: #00ffff;
+            }
+            .catalogue-item p {
+                margin: 5px 0;
+            }
+            .enum-list {
+                list-style-type: none;
+                padding-left: 0;
+            }
+            .enum-list li {
+                margin-bottom: 5px;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="header">
+            <div id="controls">
+                <select id="modelSelect"></select>
+                <button id="toggleView">Toggle Reduced View</button>
+                <button id="resetZoom">Reset Zoom</button>
+                <button id="toggleCatalogue">Toggle Catalogue</button>
+                <a id="openApiLink" href="#" target="_blank"><button>View OpenAPI Spec</button></a>
+            </div>
+            <h1>XDM Explorer</h1>
+        </div>
+        <div id="content">
+            <div id="tree-container"></div>
+            <div id="catalogue-container">
+                <div id="search-container">
+                    <div class="code-type-selector">
+                        <label>
+                            <input type="radio" name="codeType" value="full" checked> Full Event Codes
+                        </label>
+                        <label>
+                            <input type="radio" name="codeType" value="entity"> Entity Codes
+                        </label>
+                    </div>
+                    <input type="text" id="search-input" placeholder="Search canonical codes...">
+                </div>
+                <div id="catalogue-list"></div>
+            </div>
+        </div>
+        <script>
+        document.addEventListener('DOMContentLoaded', (event) => {
+            let currentModel = null;
+            let root = null;
+            let isReducedView = false;
+            let canonicalCatalogue = [];
+            let fullEventCodes = [];
+            let entityCodes = [];
+            let currentCodeType = 'full';
+    
+            // Load available models
+            fetch('xdm_models.json')
+                .then(response => response.json())
+                .then(data => {
+                    const select = document.getElementById('modelSelect');
+                    data.models.forEach(model => {
+                        const option = document.createElement('option');
+                        option.value = model.id;
+                        option.textContent = model.name;
+                        select.appendChild(option);
+                    });
+                    // Load the first model by default
+                    loadModel(data.models[0]);
+                });
+    
+            function loadModel(model) {
+                console.log("Loading model:", model);
+                currentModel = model;
+                // Update OpenAPI link
+                if (model.openApiFile) {
+                    const openApiLink = document.getElementById('openApiLink');
+                    openApiLink.href = model.openApiFile;
+                    openApiLink.style.display = 'inline';
+                    openApiLink.removeAttribute('target');
+                } else {
+                    document.getElementById('openApiLink').style.display = 'none';
+                }
+                
+                // Load and process the schema
+                fetch(model.schemaFile)
+                    .then(response => response.json())
+                    .then(schemaData => {
+                        console.log("Loaded schema data:", schemaData);
+                        root = d3.hierarchy(schemaData);
+                        root.x0 = height / 2;
+                        root.y0 = 0;                        
+                        root.descendants().forEach((d, i) => {
+                            d.id = i;
+                            if (d.depth > 0) {
+                                d._children = d.children;
+                                d.children = null;
+                            }
+                        });
+    
+                        updateVisualization(root);
+                        
+                        const initialTransform = calculateInitialTransform(root);
+                        svg.call(zoom.transform, initialTransform);
+                    })
+                    .catch(error => console.error("Error loading schema:", error));
+    
+                    // Load the canonical catalogue
+                    fetch(model.canonicalCatalogueFile)
+                        .then(response => response.json())
+                        .then(data => {
+                            console.log("Loaded canonical catalogue:", data);
+                            fullEventCodes = data.full_event_codes;
+                            entityCodes = data.entity_codes;
+                            renderCatalogue(fullEventCodes);
+                        })
+                        .catch(error => console.error("Error loading canonical catalogue:", error));
+            }
+            
+            // Set up the tree layout
+            const treemap = d3.tree().nodeSize([50, 180]); // Set a fixed size for each node
+            const margin = {top: 20, right: 90, bottom: 30, left: 90};
+            const width = window.innerWidth - margin.left - margin.right;
+            const height = window.innerHeight - margin.top - margin.bottom;
+            const duration = 750;    
+            
+            console.log("Dimensions:", { width, height });
+        
+            // Set up the SVG
+            const svg = d3.select("#tree-container").append("svg")
+                .attr("width", width + margin.right + margin.left)
+                .attr("height", height + margin.top + margin.bottom);
+        
+            const g = svg.append("g")
+                .attr("transform", `translate(${margin.left},${margin.top})`);
+        
+            // Set up zoom behavior
+            const zoom = d3.zoom()
+                .scaleExtent([0.1, 3])
+                .on("zoom", (event) => {
+                    g.attr("transform", event.transform);
+                });
+        
+            svg.call(zoom);
+        
+            // Add legend
+            const legend = svg.append("g")
+                .attr("class", "legend")
+                .attr("transform", `translate(10, 10)`);  // 10 pixels from the left and top edges
+            
+            legend.append("rect")
+                .attr("width", 120)
+                .attr("height", 30)
+                .attr("fill", "rgba(42, 42, 42, 0.7)")  // Semi-transparent background
+                .attr("rx", 5)  // Rounded corners
+                .attr("ry", 5);
+            
+            legend.append("circle")
+                .attr("cx", 15)
+                .attr("cy", 15)
+                .attr("r", 6)
+                .style("fill", "#ff00ff");
+            
+            legend.append("text")
+                .attr("x", 30)
+                .attr("y", 20)
+                .text("Reduced Schema")
+                .attr("fill", "#ffffff")
+                .style("font-size", "12px");
+                
+            function calculateInitialTransform(root) {
+                // Apply the tree layout
+                treemap(root);
+                
+                const nodes = root.descendants();
+                let left = Infinity, right = -Infinity, top = Infinity, bottom = -Infinity;
+                
+                nodes.forEach(d => {
+                    if (d.x < top) top = d.x;
+                    if (d.x > bottom) bottom = d.x;
+                    if (d.y < left) left = d.y;
+                    if (d.y > right) right = d.y;
+                });
+            
+                console.log("Tree bounds:", { left, right, top, bottom });
+            
+                // Calculate the tree's dimensions
+                const treeWidth = right - left;
+                const treeHeight = bottom - top;
+            
+                // Calculate scale to fit the tree in the viewport
+                const scale = Math.min(
+                    (width - margin.left - margin.right) / treeWidth,
+                    (height - margin.top - margin.bottom) / treeHeight
+                ) * 0.9; // 0.9 to add some padding
+            
+                // Calculate translation to position the tree at the left
+                const translateX = margin.left - left * scale;
+                const translateY = (height - treeHeight * scale) / 2 - top * scale;
+            
+                console.log("Calculated transform:", { scale, translateX, translateY });
+            
+                return d3.zoomIdentity.translate(translateX, translateY).scale(scale);
+            }
+        
+            function filterTree(node) {
+                if (isReducedView) {
+                    // Move non-reduced nodes to _children
+                    if (node.children) {
+                        if (!node._children) node._children = [];  // Initialize _children if it doesn't exist
+                        node.children.forEach(child => {
+                            if (!child.data.in_reduced) {
+                                node._children.push(child);
+                            }
+                        });
+                        node.children = node.children.filter(child => child.data.in_reduced);
+
+                        // Sort _children based on id
+                        node._children.sort((a, b) => a.id - b.id);
+                    }
+                } else {
+                    // Restore all nodes to children
+                    if (node._children && node.children) {
+                        if (!node.children) node.children = [];
+                        node.children = node.children.concat(node._children);
+                        node._children = null;
+
+                        // Sort children based on id
+                        node.children.sort((a, b) => a.id - b.id);
+                    }
+                }
+            
+                // Recursively apply to children
+                if (node.children) {
+                    node.children.forEach(filterTree);
+                }
+                if (node._children) {
+                    node._children.forEach(filterTree);
+                }
+            }
+        
+            function updateVisualization(source) {
+                let i = 0;
+                treemap(root);
+                const nodes = root.descendants();
+                const links = root.links();
+            
+                console.log("Node positions after layout:", nodes.map(n => ({ x: n.x, y: n.y })));
+            
+                // Update the nodes...
+                const node = g.selectAll('g.node')
+                    .data(nodes, d => d.id);
+            
+                // Enter any new nodes at the parent's previous position.
+                const nodeEnter = node.enter().append('g')
+                    .attr('class', 'node')
+                    .attr("transform", d => `translate(${source.y0},${source.x0})`)
+                    .on('click', (event, d) => {
+                        if (isReducedView) {
+                            if (d.children) {
+                                // Collapsing in reduced mode
+                                d._children = d._children ? d._children.concat(d.children) : d.children;
+                                d.children = null;
+                            } else if (d._children) {
+                                // Expanding in reduced mode
+                                d.children = d._children.filter(child => child.data.in_reduced);
+                                d._children = d._children.filter(child => !child.data.in_reduced);
+                                if (d.children.length === 0) {
+                                    d.children = null;  // If no reduced children, keep it collapsed
+                                }
+                            }
+                        } else {
+                            // Full mode behavior remains the same
+                            if (d.children) {
+                                d._children = d.children;
+                                d.children = null;
+                            } else if (d._children) {
+                                d.children = d._children;
+                                d._children = null;
+                            }
+                        }
+                        updateVisualization(d);
+                    })
+                    
+                nodeEnter.append('circle')
+                    .attr('r', 1e-6)
+                    .style("fill", d => d.data.in_reduced ? "#ff00ff" : "#2a2a2a")
+                    .style("stroke", "#00ffff");
+        
+                nodeEnter.append('text')
+                    .attr("dy", ".35em")
+                    .attr("x", d => d.children || d._children ? -13 : 13)
+                    .attr("text-anchor", d => d.children || d._children ? "end" : "start")
+                    .text(d => d.data.name)
+                    .style("fill-opacity", 1);
+        
+                nodeEnter.append('text')
+                    .attr("dy", "1.75em")
+                    .attr("x", d => d.children || d._children ? -13 : 13)
+                    .attr("text-anchor", d => d.children || d._children ? "end" : "start")
+                    .text(d => d.data.type)
+                    .style("fill", "#00ffff")
+                    .style("font-size", "10px");
+        
+                // Update the node attributes and style
+                const nodeUpdate = nodeEnter.merge(node);
+        
+                nodeUpdate.transition()
+                    .duration(duration)
+                    .attr("transform", d => `translate(${d.y},${d.x})`);
+        
+                nodeUpdate.select('circle')
+                    .attr('r', 10)
+                    .style("fill", d => d.data.in_reduced ? "#ff00ff" : "#2a2a2a")
+                    .attr('cursor', 'pointer');
+
+                nodeUpdate.style("display", d => {
+                    if (isReducedView && !d.data.in_reduced) {
+                        return "none";
+                    }
+                    return "block";
+                });
+
+                // Remove any exiting nodes
+                const nodeExit = node.exit().transition()
+                    .duration(duration)
+                    .attr("transform", d => `translate(${source.y},${source.x})`)
+                    .remove();
+        
+                nodeExit.select('circle')
+                    .attr('r', 1e-6);
+        
+                nodeExit.select('text')
+                    .style('fill-opacity', 1e-6);
+        
+                // Update the links...
+                const link = g.selectAll('path.link')
+                    .data(links, d => d.target.id);
+                
+                // Enter any new links at the parent's previous position.
+                const linkEnter = link.enter().insert('path', "g")
+                    .attr("class", "link")
+                    .attr('d', d => {
+                        const o = {x: source.x0, y: source.y0};
+                        return diagonal(o, o);
+                    });
+                
+                // UPDATE
+                const linkUpdate = linkEnter.merge(link);
+                
+                linkUpdate.transition()
+                    .duration(duration)
+                    .attr('d', d => diagonal(d.source, d.target));
+                
+                // Remove any exiting links
+                const linkExit = link.exit().transition()
+                    .duration(duration)
+                    .attr('d', d => {
+                        const o = {x: source.x, y: source.y};
+                        return diagonal(o, o);
+                    })
+                    .remove();
+        
+                // Store the old positions for transition.
+                nodes.forEach(d => {
+                    d.x0 = d.x;
+                    d.y0 = d.y;
+                });
+        
+                // Creates a curved (diagonal) path from parent to the child nodes
+                function diagonal(s, d) {
+                    return `M ${s.y} ${s.x}
+                            C ${(s.y + d.y) / 2} ${s.x},
+                              ${(s.y + d.y) / 2} ${d.x},
+                              ${d.y} ${d.x}`;
+                }
+            }
+        
+            function toggleView() {
+                console.log("Toggling view");
+                isReducedView = !isReducedView;
+                filterTree(root);
+                updateVisualization(root);
+            }
+        
+            function resetZoom() {
+                console.log("Resetting zoom");
+                const resetTransform = calculateInitialTransform(root);
+                svg.transition().duration(750).call(zoom.transform, resetTransform);
+            }
+
+            function renderCatalogue(catalogue) {
+                const catalogueList = document.getElementById('catalogue-list');
+                catalogueList.innerHTML = '';
+    
+                catalogue.forEach(item => {
+                    const itemElement = document.createElement('div');
+                    itemElement.className = 'catalogue-item';
+                    itemElement.innerHTML = `
+                        <h3>${item.path}</h3>
+                        <p><strong>Type:</strong> ${item.type}</p>
+                        <p><strong>Description:</strong> ${item.description}</p>
+                        ${item.format ? `<p><strong>Format:</strong> ${item.format}</p>` : ''}
+                        ${item.enum ? `
+                            <p><strong>Enum Values:</strong></p>
+                            <ul class="enum-list">
+                                ${item.enum.map(value => `<li>${value}</li>`).join('')}
+                            </ul>
+                        ` : ''}
+                    `;
+                    catalogueList.appendChild(itemElement);
+                });
+            }
+    
+            function toggleCatalogue() {
+                console.log("Toggling catalogue");
+                const treeContainer = document.getElementById('tree-container');
+                const catalogueContainer = document.getElementById('catalogue-container');
+                
+                catalogueContainer.classList.toggle('visible');
+                if (catalogueContainer.classList.contains('visible')) {
+                    treeContainer.style.flex = '1';
+                } else {
+                    treeContainer.style.flex = '1';
+                }
+                
+                // Trigger a resize event to update the D3 visualization
+                window.dispatchEvent(new Event('resize'));
+            }
+    
+            document.getElementById('toggleCatalogue').addEventListener('click', toggleCatalogue);
+    
+            document.querySelectorAll('input[name="codeType"]').forEach((radio) => {
+                radio.addEventListener('change', (e) => {
+                    currentCodeType = e.target.value;
+                    renderCatalogue(currentCodeType === 'full' ? fullEventCodes : entityCodes);
+                });
+            });
+    
+            document.getElementById('search-input').addEventListener('input', _.debounce(function(e) {
+                const searchTerm = e.target.value.toLowerCase();
+                const currentCatalogue = currentCodeType === 'full' ? fullEventCodes : entityCodes;
+                const filteredCatalogue = currentCatalogue.filter(item => 
+                    item.path.toLowerCase().includes(searchTerm) ||
+                    item.description.toLowerCase().includes(searchTerm) ||
+                    (item.enum && item.enum.some(value => value.toLowerCase().includes(searchTerm)))
+                );
+                renderCatalogue(filteredCatalogue);
+            }, 300));
+
+            // Event listeners
+            document.getElementById('modelSelect').addEventListener('change', (event) => {
+                console.log("Model selected:", event.target.value);
+                const selectedModelId = event.target.value;
+                fetch('xdm_models.json')
+                    .then(response => response.json())
+                    .then(data => {
+                        const selectedModel = data.models.find(model => model.id === selectedModelId);
+                        if (selectedModel) {
+                            loadModel(selectedModel);
+                        }
+                    })
+                    .catch(error => console.error("Error loading selected model:", error));
+            });
+    
+            document.getElementById('toggleView').addEventListener('click', toggleView);
+            document.getElementById('resetZoom').addEventListener('click', resetZoom);
+            document.getElementById('toggleCatalogue').addEventListener('click', toggleCatalogue);
+    
+            // Add a resize event listener to update the visualization when the window is resized
+            window.addEventListener('resize', _.debounce(() => {
+                if (root) {
+                    updateVisualization(root);
+                }
+            }, 250));
+        });
+        </script>
+    </body>
+    </html>
+    

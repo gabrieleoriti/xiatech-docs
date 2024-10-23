@@ -1,0 +1,414 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "PartyRole API",
+    "version": "1.0.0"
+  },
+  "tags": [
+    {
+      "name": "API Endpoints",
+      "description": "All API endpoints"
+    }
+  ],
+  "paths": {
+    "/api/partyrole": {
+      "get": {
+        "tags": [
+          "API Endpoints"
+        ],
+        "summary": "Get PartyRole",
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PartyRole"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "PartyRole": {
+        "properties": {
+          "EntityId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The (required) globally unique synthetic Xfuze Id for the entity instance this event is related to and whose payload is the subject of change, unique across all entities. Typically of the format [EntityType::EntitySubType]_[SystemCode]_[RawEntityId] where RawEntityId can be composed of 1 or more source fields to create singular uniqueness e.g SalesOrderLine::Return_Hybris_8106008620_RET1"
+          },
+          "EntityType": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The (required) entity type, allowing for a typing system (top level) for entities, where the type is sourced from the master Xfuze control list e.g SalesOrderLine"
+          },
+          "ParentEntityId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "An (required) canonical Xfuze parent entity Id, where there is a natural parent a level above, this importantly allows natural grouping by the parent for different access patterns e.g SalesOrder_Hybris_8106008620"
+          },
+          "ParentEntityType": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "An (required) canonical Xfuze parent entity type.  Ideally this should always be created even if the top parent (would have same values as EntityId and EntityType) allowing a consistent place to group by to get all records in the hierarchy  e.g SalesOrder"
+          },
+          "CompositeEntityId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "An (optional) canonical Xfuze parent entity Id, where there is a natural 'composition' and containing parent, this importantly allows natural grouping by the parent for different access patterns e.g SalesOrder_Hybris_8106008620"
+          },
+          "CompositeEntityType": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "An (optional) canonical Xfuze parent entity type.  Ideally this should always be created even if the top parent (would have same values as EntityId and EntityType) allowing a consistent place to group by to get all records in the hierarchy  e.g SalesOrder"
+          },
+          "XRefIds": {
+            "minItems": 1,
+            "description": "The list of 1:1 cross reference lookups, i.e all the ways to look up this entity by the various data points, both in canonical Ids and system specific ones",
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "Id": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "description": "The value of the id/key to lookup using (i.e surrogate key 'value') e.g TRAN123456"
+                },
+                "Code": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "description": "The name of the id/key to lookup using (i.e surrogate key 'value') as is its exact name from source e.g transId"
+                },
+                "EntityId": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "description": "The Xfuze EntityId this cross referencing lookup resolves to e.g SalesOrderLine_PMC_TRAN123456"
+                },
+                "ParentEntityId": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "description": "The Xfuze ParentEntityId this cross referencing lookup resolves to e.g SalesOrderHeader_PMC_TRAN123456"
+                },
+                "CompositeEntityId": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "description": "The Xfuze CompositeEntityId this cross referencing lookup resolves to e.g SalesOrder_PMC_TRAN123456"
+                }
+              },
+              "description": "An object to capture cross referencing fields to support entity lookups by various surrogate keys spanning systems",
+              "unevaluatedProperties": false
+            }
+          },
+          "SearchIds": {
+            "description": "The list of 1:N cross reference lookups, i.e all the ways to look up this entity by the various data points, both in canonical Ids and system specific ones",
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "Id": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "description": "The value of the id/key to lookup using (i.e surrogate key 'value') e.g TRAN123456"
+                },
+                "Code": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "description": "The name of the id/key to lookup using (i.e surrogate key 'value') as is its exact name from source e.g transId"
+                },
+                "EntityId": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "description": "The Xfuze EntityId this cross referencing lookup resolves to e.g SalesOrderLine_PMC_TRAN123456"
+                },
+                "ParentEntityId": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "description": "The Xfuze ParentEntityId this cross referencing lookup resolves to e.g SalesOrderHeader_PMC_TRAN123456"
+                },
+                "CompositeEntityId": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "description": "The Xfuze CompositeEntityId this cross referencing lookup resolves to e.g SalesOrder_PMC_TRAN123456"
+                }
+              },
+              "description": "An object to capture cross referencing fields to support entity lookups by various surrogate keys spanning systems",
+              "unevaluatedProperties": false
+            }
+          },
+          "Times": {
+            "type": "object"
+          },
+          "Status": {
+            "type": "object"
+          },
+          "Type": {
+            "type": "object",
+            "properties": {
+              "TypeCode": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "The canonical code of the type e.g Sale"
+              },
+              "TypeDesc": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "The description of the type e.g Sale Order Line"
+              },
+              "SubTypeCode": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "The canonical code of the sub type e.g Sale"
+              },
+              "SubTypeDesc": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "The description of the sub type e.g Sale Order Line"
+              }
+            },
+            "required": [
+              "TypeCode"
+            ],
+            "unevaluatedProperties": false
+          },
+          "PartyRoleIds": {
+            "type": "object",
+            "properties": {
+              "PartyId": {
+                "type": "string",
+                "description": "The Party Id, in Xfuze canonical form, identifying the Party e.g Party_Retail247_123456"
+              },
+              "PartyKey": {
+                "type": "string",
+                "description": "The Party Key is a unique identifier for grouping Party Profiles into a single view of party. This would typically be a hash of the email address as a reliable grouping key."
+              },
+              "PartyRoleId": {
+                "type": "string",
+                "description": "The Party Role Id, in Xfuze canonical form, identifying the Party e.g PartyRole_Retail247_123456"
+              },
+              "PartyRoleKey": {
+                "type": "string",
+                "description": "The Party Role identifier e.g 123456"
+              }
+            },
+            "description": "A collection of Party role ids as a common set",
+            "unevaluatedProperties": false
+          },
+          "PartyRole": {
+            "type": "object",
+            "properties": {
+              "Position": {
+                "PositionId": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "description": "The canonical (synthetic) Xfuze position id for the position if identifiable and has some unique key e.g Position_D365_55555"
+                },
+                "PositionKey": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "description": "The native position key / number of the position master, if identifiable and thus has some unique key e.g 55555"
+                },
+                "PositionName": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "description": "The name of the position"
+                },
+                "Department": {
+                  "description": "The department of the role",
+                  "type": "object",
+                  "properties": {
+                    "LocationKey": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "description": "The 'native' location number of the location like a storeNumber e.g 010"
+                    },
+                    "LocationShortName": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "description": "The (short / default) name of the location e.g GBC DC"
+                    },
+                    "LocationName": {
+                      "description": "The full name details of the location if applicable",
+                      "type": "object",
+                      "properties": {
+                        "OrgName": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "description": "The standard org name (organisation as top level) managing/owning/running this location"
+                        }
+                      },
+                      "required": [
+                        "OrgName"
+                      ],
+                      "unevaluatedProperties": false
+                    }
+                  },
+                  "unevaluatedProperties": false
+                },
+                "Job": {
+                  "JobId": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "description": "The canonical (synthetic) Xfuze position id for the job if identifiable and has some unique key e.g Position_D365_55555"
+                  },
+                  "JobKey": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "description": "The native position key / number of the job master, if identifiable and thus has some unique key e.g 55555"
+                  },
+                  "JobName": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "description": "The name of the job"
+                  },
+                  "EffectivePeriod": {
+                    "description": "The effective period of the role",
+                    "type": "object",
+                    "properties": {
+                      "StartTimestamp": {
+                        "description": "The start timestamp of the period (intra day readings)"
+                      }
+                    },
+                    "unevaluatedProperties": false
+                  }
+                }
+              },
+              "RoleLocation": {
+                "description": "The location of the role",
+                "type": "object",
+                "properties": {
+                  "LocationId": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "description": "The canonical (synthetic) SDV location ID format Location_[sourceSystem]_[LocationNumber] e.g Location_D365_010"
+                  },
+                  "LocationKey": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "description": "The 'native' location number of the location like a storeNumber e.g 010"
+                  },
+                  "LocationShortName": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "description": "The (short / default) name of the location e.g GBC DC"
+                  },
+                  "LocationName": {
+                    "description": "The full name details of the location if applicable",
+                    "type": "object",
+                    "properties": {
+                      "OrgName": {
+                        "type": [
+                          "string",
+                          "null"
+                        ],
+                        "description": "The standard org name (organisation as top level) managing/owning/running this location"
+                      }
+                    },
+                    "required": [
+                      "OrgName"
+                    ],
+                    "unevaluatedProperties": false
+                  }
+                },
+                "unevaluatedProperties": false
+              },
+              "EffectivePeriod": {
+                "description": "The effective period of the role",
+                "type": "object",
+                "properties": {
+                  "StartTimestamp": {
+                    "description": "The start timestamp of the period (intra day readings)"
+                  }
+                },
+                "unevaluatedProperties": false
+              }
+            },
+            "unevaluatedProperties": false
+          }
+        },
+        "required": [
+          "CompositeEntityId",
+          "CompositeEntityType",
+          "EntityId",
+          "EntityType",
+          "ParentEntityId",
+          "ParentEntityType",
+          "PartyRoleIds",
+          "Status",
+          "Times",
+          "Type",
+          "XRefIds"
+        ],
+        "type": "object",
+        "unevaluatedProperties": false
+      }
+    }
+  }
+}

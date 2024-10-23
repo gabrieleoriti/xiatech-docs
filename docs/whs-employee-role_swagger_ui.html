@@ -1,0 +1,191 @@
+
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>WHS Employee Role - OpenAPI Specification</title>
+        <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/3.51.1/swagger-ui.min.css" >
+        <link href="https://fonts.googleapis.com/css2?family=Saira:wght@400;600&display=swap" rel="stylesheet">
+        <style>
+            
+                body {
+                background-color: #1a1a1a;
+                color: #cccccc;  /* Slightly dimmed main text */
+                font-family: 'Saira', sans-serif;
+                margin: 0;
+                padding: 0;
+            }
+            #header {
+                background-color: #2a2a2a;
+                padding: 20px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+            h1 {
+                margin: 0;
+                color: #ffffff;  /* Keep headers bright white */
+            }
+            button {
+                background-color: #1a1a1a;
+                color: #00ffff;
+                border: 1px solid #00ffff;
+                padding: 8px 16px;
+                cursor: pointer;
+                font-family: 'Saira', sans-serif;
+                font-size: 14px;
+                transition: all 0.3s ease;
+            }
+            button:hover {
+                background-color: #00ffff;
+                color: #1a1a1a;
+            }
+            #swagger-ui {
+                background-color: #1a1a1a;
+            }
+            
+            /* Make data types and properties like 'minItems' cyan */
+            .swagger-ui .model .property,
+            .swagger-ui .model .property.primitive,
+            .swagger-ui .parameter__type,
+            .swagger-ui .response-col_description__inner div.markdown,
+            .swagger-ui .prop-type,
+            .swagger-ui .prop-format,
+            .swagger-ui .json-schema-2020-12-keyword {
+                color: #00ffff !important;
+            }
+        
+            /* Make arrows pink */
+            .swagger-ui .model-toggle:after {
+                background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath d='M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z' fill='%23ff69b4'/%3E%3C/svg%3E") !important;
+            }
+            .swagger-ui .expand-methods svg,
+            .swagger-ui .expand-operation svg {
+                fill: #ff69b4 !important;
+            }
+        
+            /* Bright white for titles and headers */
+            .swagger-ui .info .title,
+            .swagger-ui .opblock-tag,
+            .swagger-ui table thead tr th,
+            .swagger-ui .parameters-col_name,
+            .swagger-ui .parameter__name,
+            .swagger-ui section.models h4,
+            .swagger-ui section.models .model-title,
+            .swagger-ui .servers > label {
+                color: #ffffff !important;
+            }
+        
+            /* Slightly dimmed white for main text */
+            .swagger-ui .info .base-url,
+            .swagger-ui .info .description,
+            .swagger-ui .opblock .opblock-summary-operation-id,
+            .swagger-ui .opblock .opblock-summary-path,
+            .swagger-ui .opblock .opblock-summary-description,
+            .swagger-ui .opblock-description-wrapper p,
+            .swagger-ui .responses-inner h4,
+            .swagger-ui .responses-inner h5,
+            .swagger-ui .response-col_status,
+            .swagger-ui .parameters-col_description,
+            .swagger-ui .parameter__deprecated,
+            .swagger-ui .parameter__in,
+            .swagger-ui table tbody tr td,
+            .swagger-ui .response-col_description,
+            .swagger-ui .property-name,
+            .swagger-ui section.models .property-name {
+                color: #cccccc !important;
+            }
+        
+            .swagger-ui .opblock {
+                background-color: #2a2a2a;
+                border-color: #4a4a4a;
+            }
+            .swagger-ui .opblock .opblock-summary {
+                border-color: #4a4a4a;
+            }
+            .swagger-ui section.models {
+                border-color: #4a4a4a;
+            }
+            .swagger-ui section.models.is-open h4 {
+                border-bottom-color: #4a4a4a;
+            }
+            .swagger-ui .model-box {
+                background-color: #2a2a2a !important;
+            }
+            .swagger-ui .model {
+                color: #cccccc !important;
+            }
+            /* Fix for "ModelsSchemas" issue */
+            .swagger-ui .models h4 span {
+                display: none;
+            }
+            .swagger-ui .models h4::before {
+                content: "Models";
+                color: #ffffff;
+            }
+        
+            /* Make all arrows pink */
+            .swagger-ui .expand-operation svg,
+            .swagger-ui .model-toggle::after,
+            .swagger-ui .expand-methods svg path,
+            .swagger-ui .arrow {
+                fill: #ff69b4 !important;
+                color: #ff69b4 !important;
+            }
+        
+            /* Ensure the arrow is visible against the dark background */
+            .swagger-ui .model-toggle::after {
+                filter: brightness(1.5);
+            }
+        
+            /* Additional style to ensure arrow visibility */
+            .swagger-ui .opblock-summary-control:focus > .arrow {
+                fill: #ff69b4 !important;
+            }
+            /* Make the arrow next to "Models" pink */
+            .swagger-ui .models h4 svg {
+                fill: #ff69b4 !important;
+            }
+            
+            /* Ensure the arrow is visible and pink when expanded */
+            .swagger-ui .models.is-open h4 svg {
+                fill: #ff69b4 !important;
+                transform: rotate(90deg);
+            }
+            
+            /* Additional specificity to override any conflicting styles */
+            .swagger-ui .models-control > svg {
+                fill: #ff69b4 !important;
+            }
+    
+        </style>
+    </head>
+    <body>
+        <div id="header">
+            <button onclick="window.location.href='xdm_explorer.html'">Back to XDM Explorer</button>
+            <h1>WHS Employee Role - OpenAPI Specification</h1>
+        </div>
+        <div id="swagger-ui"></div>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/3.51.1/swagger-ui-bundle.min.js"></script>
+        <script>
+            window.onload = function() {
+                SwaggerUIBundle({
+                    url: "whs-employee-role_openapi_spec.json",
+                    dom_id: '#swagger-ui',
+                    deepLinking: true,
+                    presets: [
+                        SwaggerUIBundle.presets.apis,
+                        SwaggerUIBundle.SwaggerUIStandalonePreset
+                    ],
+                    layout: "BaseLayout",
+                    theme: {
+                        colors: {
+                            primary: '#00ffff',
+                        }
+                    }
+                });
+            }
+        </script>
+    </body>
+    </html>
+    

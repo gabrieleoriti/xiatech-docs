@@ -1,0 +1,32 @@
+{
+  "models": [
+    {
+      "id": "whs-Employee-profile",
+      "name": "WHS Employee Profile",
+      "schemaFile": "whs-Employee-profile_processed_schema.json",
+      "canonicalCatalogueFile": "whs-Employee-profile_canonical_catalogue.json",
+      "openApiFile": "whs-Employee-profile_swagger_ui.html"
+    },
+    {
+      "id": "whs-employee-role",
+      "name": "WHS Employee Role",
+      "schemaFile": "whs-employee-role_processed_schema.json",
+      "canonicalCatalogueFile": "whs-employee-role_canonical_catalogue.json",
+      "openApiFile": "whs-employee-role_swagger_ui.html"
+    },
+    {
+      "id": "whs-location",
+      "name": "WHS Location",
+      "schemaFile": "whs-location_processed_schema.json",
+      "canonicalCatalogueFile": "whs-location_canonical_catalogue.json",
+      "openApiFile": "whs-location_swagger_ui.html"
+    },
+    {
+      "id": "whs-location-unit",
+      "name": "WHS Location Unit",
+      "schemaFile": "whs-location-unit_processed_schema.json",
+      "canonicalCatalogueFile": "whs-location-unit_canonical_catalogue.json",
+      "openApiFile": "whs-location-unit_swagger_ui.html"
+    }
+  ]
+}
